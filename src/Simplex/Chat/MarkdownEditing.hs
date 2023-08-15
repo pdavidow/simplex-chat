@@ -109,7 +109,7 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
             f :: Int -> FormattedChar -> DiffedChar
             f i x = DiffedChar x $
                 if i `elem` deleteIndicies then Deleted 
-                else UnchangedTextually $ unchangers M.! i -- should never error
+                else UnchangedTextually $ unchangers M.! i -- should never error             
 
     addInserts :: Seq DiffedChar -> Seq DiffedChar
     addInserts base = F.foldr f base edits -- start from end and work backwards, hence foldr
