@@ -198,3 +198,48 @@ formattedEditedTextTests = describe "show edits" do
         , DiffedChar (FormattedChar 'z' (Just Secret)) Inserted 
         , DiffedChar (FormattedChar 'o' (Just $ colored Green)) $ UnchangedTextually (ChangedToFormat (Just $ colored Blue))                                  
         ]
+
+
+  it "more4" do
+    findDiffs 
+        (LeftSide $ S.fromList
+          [ FormattedChar 'H' Nothing          
+          , FormattedChar 'r' Nothing                 
+          , FormattedChar 'l' Nothing      
+          , FormattedChar '~' Nothing  
+          , FormattedChar '!' Nothing  
+          , FormattedChar '@' Nothing                                     
+          , FormattedChar 'l' Nothing                  
+          , FormattedChar 'o' Nothing                                    
+          ])   
+
+        (RightSide $ S.fromList
+          [ FormattedChar 'H' Nothing           
+          , FormattedChar 'e' Nothing 
+          , FormattedChar 'r' Nothing             
+          , FormattedChar 'x' Nothing                 
+          , FormattedChar 'y' Nothing     
+          , FormattedChar '!' Nothing  
+          , FormattedChar '@' Nothing                       
+          , FormattedChar 'z' Nothing             
+          , FormattedChar 'o' Nothing      
+          , FormattedChar '1' Nothing 
+          , FormattedChar '2' Nothing                                                        
+          ])  
+
+      `shouldBe` S.fromList
+          [ DiffedChar (FormattedChar 'H' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar 'e' Nothing) Inserted
+          , DiffedChar (FormattedChar 'r' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar 'l' Nothing) Deleted
+          , DiffedChar (FormattedChar '~' Nothing) Deleted
+          , DiffedChar (FormattedChar 'x' Nothing) Inserted
+          , DiffedChar (FormattedChar 'y' Nothing) Inserted
+          , DiffedChar (FormattedChar '!' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar '@' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar 'l' Nothing) Deleted
+          , DiffedChar (FormattedChar 'z' Nothing) Inserted
+          , DiffedChar (FormattedChar 'o' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar '1' Nothing) Inserted
+          , DiffedChar (FormattedChar '2' Nothing) Inserted
+          ]
