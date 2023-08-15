@@ -1,13 +1,10 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module MarkdownEditingTests where
 
-import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Sequence as S
-import Data.Text (Text)
 import Simplex.Chat.Markdown
     ( colored, Format(Secret, Italic, Bold) )
 import Simplex.Chat.MarkdownEditing
