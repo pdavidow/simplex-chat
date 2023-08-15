@@ -81,27 +81,27 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
     where
     edits = D.diffTexts (toText left) (toText right)  
     (DeleteIndicies deleteIndicies, InsertIndicies insertIndicies) = indicesFromEdits edits
-        
-    unchangedTextually :: Seq (Int, FormattedChar, FormattedChar) -- indexed in original
-    unchangedTextually = f <$> S.zip leftWithoutDeletes rightWithoutInserts
-        where
-        leftWithoutDeletes :: Seq (Int, FormattedChar) -- indexed in original
-        leftWithoutDeletes = S.filter (\(i, _) -> i `notElem` deleteIndicies) leftZ 
-            where leftZ = S.zip (S.fromList [0 .. S.length left]) left
 
-        rightWithoutInserts :: Seq (Int, FormattedChar) -- indexed in original
-        rightWithoutInserts = S.filter (\(i, _) -> i `notElem` insertIndicies) rightZ 
-            where rightZ = S.zip (S.fromList [0 .. S.length right]) right
-
-        f :: ((Int, FormattedChar), (Int, FormattedChar)) -> (Int, FormattedChar, FormattedChar)
-        f ((i,c), (_j,d)) = (i,c,d) -- i and _j should always be equal
-
-    unchangers :: M.Map Int DiffUnchangedTextuallyStatus
+    unchangers :: M.Map Int DiffUnchangedTextuallyStatus 
     unchangers = F.foldl' f M.empty unchangedTextually
         where
         f :: M.Map Int DiffUnchangedTextuallyStatus -> (Int, FormattedChar, FormattedChar) -> M.Map Int DiffUnchangedTextuallyStatus
         f acc (i, FormattedChar _ fL, FormattedChar _ fR) = M.insert i x acc
             where x = if fL == fR then Pristine else ChangedToFormat fR
+
+        unchangedTextually :: Seq (Int, FormattedChar, FormattedChar) 
+        unchangedTextually = g <$> S.zip leftWithoutDeletes rightWithoutInserts
+
+        leftWithoutDeletes :: Seq (Int, FormattedChar) -- indexed in original left
+        leftWithoutDeletes = S.filter (\(i, _) -> i `notElem` deleteIndicies) leftZ 
+            where leftZ = S.zip (S.fromList [0 .. S.length left]) left
+
+        rightWithoutInserts :: Seq (Int, FormattedChar) -- indexed in original right
+        rightWithoutInserts = S.filter (\(i, _) -> i `notElem` insertIndicies) rightZ 
+            where rightZ = S.zip (S.fromList [0 .. S.length right]) right
+
+        g :: ((Int, FormattedChar), (Int, FormattedChar)) -> (Int, FormattedChar, FormattedChar)
+        g ((i,c), (_j,d)) = (i,c,d) -- i and _j should always be equal            
 
     markDeletesAndUnchangedTextually :: Seq DiffedChar
     markDeletesAndUnchangedTextually = S.mapWithIndex f left
