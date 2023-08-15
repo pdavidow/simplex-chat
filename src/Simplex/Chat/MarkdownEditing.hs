@@ -85,10 +85,6 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
     unchangers :: M.Map Int DiffUnchangedTextuallyStatus 
     unchangers = F.foldl' f M.empty unchangedTextually
         where
-        f :: M.Map Int DiffUnchangedTextuallyStatus -> (Int, FormattedChar, FormattedChar) -> M.Map Int DiffUnchangedTextuallyStatus
-        f acc (i, FormattedChar _ fL, FormattedChar _ fR) = M.insert i x acc
-            where x = if fL == fR then Pristine else ChangedToFormat fR
-
         unchangedTextually :: Seq (Int, FormattedChar, FormattedChar) 
         unchangedTextually = g <$> S.zip leftWithoutDeletes rightWithoutInserts
 
@@ -99,6 +95,10 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
         rightWithoutInserts :: Seq (Int, FormattedChar) -- indexed in original right
         rightWithoutInserts = S.filter (\(i, _) -> i `notElem` insertIndicies) rightZ 
             where rightZ = S.zip (S.fromList [0 .. S.length right]) right
+
+        f :: M.Map Int DiffUnchangedTextuallyStatus -> (Int, FormattedChar, FormattedChar) -> M.Map Int DiffUnchangedTextuallyStatus
+        f acc (i, FormattedChar _ fL, FormattedChar _ fR) = M.insert i x acc
+            where x = if fL == fR then Pristine else ChangedToFormat fR
 
         g :: ((Int, FormattedChar), (Int, FormattedChar)) -> (Int, FormattedChar, FormattedChar)
         g ((i,c), (_j,d)) = (i,c,d) -- i and _j should always be equal            
