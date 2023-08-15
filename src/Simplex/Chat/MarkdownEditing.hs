@@ -77,16 +77,16 @@ indicesFromEdits = F.foldl' f (DeleteIndicies S.empty, InsertIndicies S.empty)
 
 
 findDiffs :: LeftSide -> RightSide -> Seq DiffedChar
-findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchangedTextually
+findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchangedChars
     where
     edits = D.diffTexts (toText left) (toText right)  
     (DeleteIndicies deleteIndicies, InsertIndicies insertIndicies) = indicesFromEdits edits
 
-    unchangers :: M.Map Int DiffFormatStatus 
-    unchangers = F.foldl' f mempty unchangedTextually
+    unchangedChars :: M.Map Int DiffFormatStatus 
+    unchangedChars = F.foldl' f mempty unchangedCharPairs
         where
-        unchangedTextually :: Seq (Int, FormattedChar, FormattedChar) 
-        unchangedTextually = g <$> S.zip leftWithoutDeletes rightWithoutInserts
+        unchangedCharPairs :: Seq (Int, FormattedChar, FormattedChar) 
+        unchangedCharPairs = g <$> S.zip leftWithoutDeletes rightWithoutInserts
 
         leftWithoutDeletes :: Seq (Int, FormattedChar) -- indexed in original left
         leftWithoutDeletes = S.filter (\(i, _) -> i `notElem` deleteIndicies) leftZ 
@@ -103,13 +103,13 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
         g :: ((Int, FormattedChar), (Int, FormattedChar)) -> (Int, FormattedChar, FormattedChar)
         g ((i,c), (_j,d)) = (i,c,d) -- i and _j should always be equal            
 
-    markDeletesAndUnchangedTextually :: Seq DiffedChar
-    markDeletesAndUnchangedTextually = S.mapWithIndex f left
+    markDeletesAndUnchangedChars :: Seq DiffedChar
+    markDeletesAndUnchangedChars = S.mapWithIndex f left
         where
             f :: Int -> FormattedChar -> DiffedChar
             f i x = DiffedChar x $
                 if i `elem` deleteIndicies then Deleted 
-                else UnchangedChar $ unchangers M.! i -- should never error             
+                else UnchangedChar $ unchangedChars M.! i -- should never error             
 
     addInserts :: Seq DiffedChar -> Seq DiffedChar
     addInserts base = F.foldr f base edits -- start from end and work backwards, hence foldr
@@ -120,7 +120,7 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
             D.EditInsert i m n -> S.take i' acc >< inserts >< S.drop i' acc 
          -- D.EditInsert i m n -> S.take i  acc >< inserts >< S.drop i  acc              
             -- if ok to have inserts before deletes, use i not i'
-            -- Using i of course is faster, but i' approach perhaps can be optimised
+            -- Using i of course is faster, but perhaps i' approach can be optimised
               
                 where 
                 i' = slidePastDeleteBlock i
