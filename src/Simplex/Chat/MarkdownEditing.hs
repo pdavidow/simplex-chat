@@ -8,7 +8,7 @@
 module Simplex.Chat.MarkdownEditing 
     ( DiffedChar(..)
     , DiffStatus(..)
-    , DiffUnchangedTextuallyStatus(..)
+    , DiffFormatStatus(..)
     , FormattedChar(..)
     , LeftSide(..)
     , RightSide(..)
@@ -27,14 +27,14 @@ import           Simplex.Chat.Markdown ( FormattedText(..), Format )
 
 
 data DiffStatus 
-    = UnchangedTextually DiffUnchangedTextuallyStatus
+    = UnchangedChar DiffFormatStatus
     | Inserted 
     | Deleted 
     deriving (Show, Eq)
 
 
-data DiffUnchangedTextuallyStatus
-    = Pristine
+data DiffFormatStatus
+    = UnchangedFormat
     | ChangedToFormat (Maybe Format)
     deriving (Show, Eq)
 
@@ -82,7 +82,7 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
     edits = D.diffTexts (toText left) (toText right)  
     (DeleteIndicies deleteIndicies, InsertIndicies insertIndicies) = indicesFromEdits edits
 
-    unchangers :: M.Map Int DiffUnchangedTextuallyStatus 
+    unchangers :: M.Map Int DiffFormatStatus 
     unchangers = F.foldl' f mempty unchangedTextually
         where
         unchangedTextually :: Seq (Int, FormattedChar, FormattedChar) 
@@ -96,9 +96,9 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
         rightWithoutInserts = S.filter (\(i, _) -> i `notElem` insertIndicies) rightZ 
             where rightZ = S.zip (S.fromList [0 .. S.length right]) right
 
-        f :: M.Map Int DiffUnchangedTextuallyStatus -> (Int, FormattedChar, FormattedChar) -> M.Map Int DiffUnchangedTextuallyStatus
+        f :: M.Map Int DiffFormatStatus -> (Int, FormattedChar, FormattedChar) -> M.Map Int DiffFormatStatus
         f acc (i, FormattedChar _ fL, FormattedChar _ fR) = M.insert i x acc
-            where x = if fL == fR then Pristine else ChangedToFormat fR
+            where x = if fL == fR then UnchangedFormat else ChangedToFormat fR
 
         g :: ((Int, FormattedChar), (Int, FormattedChar)) -> (Int, FormattedChar, FormattedChar)
         g ((i,c), (_j,d)) = (i,c,d) -- i and _j should always be equal            
@@ -109,7 +109,7 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
             f :: Int -> FormattedChar -> DiffedChar
             f i x = DiffedChar x $
                 if i `elem` deleteIndicies then Deleted 
-                else UnchangedTextually $ unchangers M.! i -- should never error             
+                else UnchangedChar $ unchangers M.! i -- should never error             
 
     addInserts :: Seq DiffedChar -> Seq DiffedChar
     addInserts base = F.foldr f base edits -- start from end and work backwards, hence foldr

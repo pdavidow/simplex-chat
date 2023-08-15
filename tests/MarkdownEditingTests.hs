@@ -10,9 +10,9 @@ import Simplex.Chat.Markdown
 import Simplex.Chat.MarkdownEditing
     ( FormattedChar(FormattedChar),
       DiffedChar(DiffedChar),
-      DiffStatus(UnchangedTextually, Inserted, Deleted),
+      DiffStatus(UnchangedChar, Inserted, Deleted),
       findDiffs,
-      DiffUnchangedTextuallyStatus(ChangedToFormat, Pristine),
+      DiffFormatStatus(ChangedToFormat, UnchangedFormat),
       LeftSide(..),
       RightSide(..) )
 import System.Console.ANSI.Types
@@ -37,7 +37,7 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedTextually Pristine                                                              
+        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedChar UnchangedFormat                                                              
         ]
 
 
@@ -90,12 +90,12 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedTextually Pristine
+        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedChar UnchangedFormat
         , DiffedChar (FormattedChar 'r' Nothing) Deleted          
         , DiffedChar (FormattedChar 'e' Nothing) Inserted      
-        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedTextually Pristine 
-        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedTextually Pristine 
-        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedTextually Pristine                                                        
+        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedChar UnchangedFormat 
+        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedChar UnchangedFormat 
+        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedChar UnchangedFormat                                                        
         ]
 
 
@@ -121,12 +121,12 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedTextually Pristine
+        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedChar UnchangedFormat
         , DiffedChar (FormattedChar 'r' Nothing) Deleted          
         , DiffedChar (FormattedChar 'e' Nothing) Inserted      
-        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedTextually Pristine 
-        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedTextually Pristine 
-        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedTextually Pristine                                       
+        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedChar UnchangedFormat 
+        , DiffedChar (FormattedChar 'l' Nothing) $ UnchangedChar UnchangedFormat 
+        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedChar UnchangedFormat                                       
         , DiffedChar (FormattedChar 'x' Nothing) Inserted
         , DiffedChar (FormattedChar 'y' Nothing) Inserted
         , DiffedChar (FormattedChar 'z' Nothing) Inserted                   
@@ -153,7 +153,7 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedTextually Pristine
+        [ DiffedChar (FormattedChar 'H' Nothing) $ UnchangedChar UnchangedFormat
         , DiffedChar (FormattedChar 'r' Nothing) Deleted
         , DiffedChar (FormattedChar 'l' Nothing) Deleted  
         , DiffedChar (FormattedChar 'l' Nothing) Deleted          
@@ -161,7 +161,7 @@ formattedEditedTextTests = describe "show edits" do
         , DiffedChar (FormattedChar 'x' Nothing) Inserted
         , DiffedChar (FormattedChar 'y' Nothing) Inserted
         , DiffedChar (FormattedChar 'z' Nothing) Inserted
-        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedTextually Pristine                      
+        , DiffedChar (FormattedChar 'o' Nothing) $ UnchangedChar UnchangedFormat                      
         ]
 
 
@@ -187,8 +187,8 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-        [ DiffedChar (FormattedChar 'H' (Just Bold)) $ UnchangedTextually (ChangedToFormat (Just Italic)) 
-        , DiffedChar (FormattedChar 'H' (Just Bold)) $ UnchangedTextually Pristine
+        [ DiffedChar (FormattedChar 'H' (Just Bold)) $ UnchangedChar (ChangedToFormat (Just Italic)) 
+        , DiffedChar (FormattedChar 'H' (Just Bold)) $ UnchangedChar UnchangedFormat
         , DiffedChar (FormattedChar 'r' Nothing) Deleted
         , DiffedChar (FormattedChar 'l' (Just Secret)) Deleted  
         , DiffedChar (FormattedChar 'l' Nothing) Deleted         
@@ -196,7 +196,7 @@ formattedEditedTextTests = describe "show edits" do
         , DiffedChar (FormattedChar 'x' Nothing) Inserted
         , DiffedChar (FormattedChar 'y' Nothing) Inserted
         , DiffedChar (FormattedChar 'z' (Just Secret)) Inserted 
-        , DiffedChar (FormattedChar 'o' (Just $ colored Green)) $ UnchangedTextually (ChangedToFormat (Just $ colored Blue))                                  
+        , DiffedChar (FormattedChar 'o' (Just $ colored Green)) $ UnchangedChar (ChangedToFormat (Just $ colored Blue))                                  
         ]
 
 
@@ -228,18 +228,18 @@ formattedEditedTextTests = describe "show edits" do
           ])  
 
       `shouldBe` S.fromList
-          [ DiffedChar (FormattedChar 'H' Nothing) (UnchangedTextually Pristine)
+          [ DiffedChar (FormattedChar 'H' Nothing) (UnchangedChar UnchangedFormat)
           , DiffedChar (FormattedChar 'e' Nothing) Inserted
-          , DiffedChar (FormattedChar 'r' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar 'r' Nothing) (UnchangedChar UnchangedFormat)
           , DiffedChar (FormattedChar 'l' Nothing) Deleted
           , DiffedChar (FormattedChar '~' Nothing) Deleted
           , DiffedChar (FormattedChar 'x' Nothing) Inserted
           , DiffedChar (FormattedChar 'y' Nothing) Inserted
-          , DiffedChar (FormattedChar '!' Nothing) (UnchangedTextually Pristine)
-          , DiffedChar (FormattedChar '@' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar '!' Nothing) (UnchangedChar UnchangedFormat)
+          , DiffedChar (FormattedChar '@' Nothing) (UnchangedChar UnchangedFormat)
           , DiffedChar (FormattedChar 'l' Nothing) Deleted
           , DiffedChar (FormattedChar 'z' Nothing) Inserted
-          , DiffedChar (FormattedChar 'o' Nothing) (UnchangedTextually Pristine)
+          , DiffedChar (FormattedChar 'o' Nothing) (UnchangedChar UnchangedFormat)
           , DiffedChar (FormattedChar '1' Nothing) Inserted
           , DiffedChar (FormattedChar '2' Nothing) Inserted
           ]
