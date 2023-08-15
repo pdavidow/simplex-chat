@@ -117,15 +117,19 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
         f :: D.Edit -> Seq DiffedChar -> Seq DiffedChar
         f e acc = case e of
             D.EditDelete _ _ -> acc
-            D.EditInsert i m n -> S.take i' acc >< inserts >< S.drop i' acc -- if ok to have inserts before deletes, use i not i'. Using i of course is faster
+            D.EditInsert i m n -> S.take i' acc >< inserts >< S.drop i' acc 
+         -- D.EditInsert i m n -> S.take i  acc >< inserts >< S.drop i  acc              
+            -- if ok to have inserts before deletes, use i not i'
+            -- Using i of course is faster, but i' approach perhaps can be optimised
+              
                 where 
                 i' = slidePastDeleteBlock i
 
+                slidePastDeleteBlock :: Int -> Int
                 slidePastDeleteBlock x = case S.lookup x acc of
                     Nothing -> x
                     Just (DiffedChar _ diffStatus) -> 
-                        if diffStatus == Deleted then 
-                            slidePastDeleteBlock (x + 1) 
+                        if diffStatus == Deleted then slidePastDeleteBlock (x + 1) 
                         else x
 
                 rightFormatChars = S.take (n - m + 1) $ S.drop m right
