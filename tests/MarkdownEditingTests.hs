@@ -8,13 +8,16 @@ import qualified Data.Sequence as S
 import Simplex.Chat.Markdown
     ( colored, Format(Secret, Italic, Bold) )
 import Simplex.Chat.MarkdownEditing
-    ( FormattedChar(FormattedChar),
-      DiffedChar(DiffedChar),
-      DiffStatus(UnchangedChar, Inserted, Deleted),
-      findDiffs,
-      DiffFormatStatus(ChangedToFormat, UnchangedFormat),
+    ( FormattedChar(..),
+      DiffedChar(..),
+      DiffedPlainChar(..),
+      DiffStatus(..),
+      DiffPlainStatus(..),
+      DiffFormatStatus(..),
       LeftSide(..),
-      RightSide(..) )
+      RightSide(..),
+      findDiffs,
+      findPlainDiffs )
 import System.Console.ANSI.Types
 import Test.Hspec
 
@@ -242,4 +245,24 @@ formattedEditedTextTests = describe "show edits" do
           , DiffedChar (FormattedChar 'o' Nothing) (UnchangedChar UnchangedFormat)
           , DiffedChar (FormattedChar '1' Nothing) Inserted
           , DiffedChar (FormattedChar '2' Nothing) Inserted
+          ]
+
+
+  it "findPlainDiffs" do
+    findPlainDiffs (LeftSide "Hrl~!@lo") (RightSide "Herxy!@zo12")
+      `shouldBe` S.fromList
+          [ DiffedPlainChar 'H' PlainUnchanged
+          , DiffedPlainChar 'e' PlainInserted
+          , DiffedPlainChar 'r' PlainUnchanged
+          , DiffedPlainChar 'l' PlainDeleted
+          , DiffedPlainChar '~' PlainDeleted
+          , DiffedPlainChar 'x' PlainInserted
+          , DiffedPlainChar 'y' PlainInserted
+          , DiffedPlainChar '!' PlainUnchanged
+          , DiffedPlainChar '@' PlainUnchanged
+          , DiffedPlainChar 'l' PlainDeleted
+          , DiffedPlainChar 'z' PlainInserted
+          , DiffedPlainChar 'o' PlainUnchanged
+          , DiffedPlainChar '1' PlainInserted
+          , DiffedPlainChar '2' PlainInserted
           ]

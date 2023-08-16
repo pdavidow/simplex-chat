@@ -7,12 +7,16 @@
 
 module Simplex.Chat.MarkdownEditing 
     ( DiffedChar(..)
+    , DiffedPlainChar(..)
     , DiffStatus(..)
+    , DiffPlainStatus(..)
     , DiffFormatStatus(..)
     , FormattedChar(..)
     , LeftSide(..)
     , RightSide(..)
     , findDiffs
+    , findPlainDiffs
+    , toFormattedChars
     )
     where
 
@@ -33,6 +37,13 @@ data DiffStatus
     deriving (Show, Eq)
 
 
+data DiffPlainStatus
+    = PlainUnchanged
+    | PlainInserted
+    | PlainDeleted
+    deriving (Show, Eq)
+
+
 data DiffFormatStatus
     = UnchangedFormat
     | ChangedToFormat (Maybe Format)
@@ -43,6 +54,10 @@ data DiffedChar = DiffedChar FormattedChar DiffStatus
     deriving (Show, Eq)
 
 
+data DiffedPlainChar = DiffedPlainChar Char DiffPlainStatus
+    deriving (Show, Eq)
+
+
 data FormattedChar = FormattedChar 
     { char :: Char
     , format :: Maybe Format
@@ -50,8 +65,8 @@ data FormattedChar = FormattedChar
     deriving (Show, Eq)
 
 
-newtype LeftSide  = LeftSide  (Seq FormattedChar) deriving (Show, Eq)
-newtype RightSide = RightSide (Seq FormattedChar) deriving (Show, Eq)
+newtype LeftSide a = LeftSide a 
+newtype RightSide a = RightSide a
 
 
 newtype DeleteIndicies = DeleteIndicies (Seq Int) deriving (Show, Eq)
@@ -76,7 +91,23 @@ indicesFromEdits = F.foldl' f (DeleteIndicies S.empty, InsertIndicies S.empty)
         D.EditInsert _ m n -> (x , y') where y' = InsertIndicies $ is >< S.fromList [m .. n] 
 
 
-findDiffs :: LeftSide -> RightSide -> Seq DiffedChar
+findPlainDiffs :: LeftSide T.Text -> RightSide T.Text -> Seq DiffedPlainChar
+findPlainDiffs (LeftSide left) (RightSide right) = f <$> diffs
+    where
+    diffs = findDiffs (LeftSide $ toFormattedCharsFromText left) (RightSide $ toFormattedCharsFromText right)
+
+    toFormattedCharsFromText :: T.Text -> Seq FormattedChar
+    toFormattedCharsFromText = fmap (`FormattedChar` Nothing) . S.fromList . T.unpack 
+
+    f :: DiffedChar -> DiffedPlainChar
+    f (DiffedChar (FormattedChar c _) diffStatus) = DiffedPlainChar c diffStatusPlain
+        where diffStatusPlain = case diffStatus of
+                UnchangedChar _ -> PlainUnchanged
+                Inserted -> PlainInserted
+                Deleted -> PlainDeleted
+
+
+findDiffs :: LeftSide (Seq FormattedChar) -> RightSide (Seq FormattedChar) -> Seq DiffedChar
 findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchangedChars
     where
     edits = D.diffTexts (toText left) (toText right)  
