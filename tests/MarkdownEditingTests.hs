@@ -6,7 +6,7 @@ module MarkdownEditingTests where
 
 import qualified Data.Sequence as S
 import Simplex.Chat.Markdown
-    ( colored, Format(Secret, Italic, Bold) )
+
 import Simplex.Chat.MarkdownEditing
     ( FormattedChar(..),
       DiffedChar(..),
@@ -18,8 +18,11 @@ import Simplex.Chat.MarkdownEditing
       RightSide(..),
       findDiffs,
       findPlainDiffs )
-import System.Console.ANSI.Types
-import Test.Hspec
+
+
+import           System.Console.ANSI.Types
+import           Test.Hspec
+import qualified Data.List.NonEmpty as NE
 
 
 markdownEditingTests :: Spec
@@ -29,6 +32,21 @@ markdownEditingTests = do
 
 formattedEditedTextTests :: Spec
 formattedEditedTextTests = describe "show edits" do
+  it "empty no change" do
+    findDiffs 
+        (LeftSide $ S.fromList
+          [                                         
+          ])   
+
+        (RightSide $ S.fromList
+          [                                                       
+          ])  
+
+      `shouldBe` S.fromList
+        [                                                             
+        ]
+
+
   it "no change" do
     findDiffs 
         (LeftSide $ S.fromList
@@ -246,6 +264,44 @@ formattedEditedTextTests = describe "show edits" do
           , DiffedChar (FormattedChar '1' Nothing) Inserted
           , DiffedChar (FormattedChar '2' Nothing) Inserted
           ]
+
+
+  it "SimplexLink" do
+    findDiffs 
+        (LeftSide $ S.fromList
+          [ FormattedChar '>' $ Just $ SimplexLink    
+              { linkType = XLContact
+              , simplexUri = "https://api.twitter.com/2/tweets/:id"
+              , trustedUri = True
+              , smpHosts = NE.fromList ["host1", "host2", "host3"]}                                                   
+          ])   
+
+        (RightSide $ S.fromList
+          [ FormattedChar '>' $ Just SimplexLink    
+              { linkType = XLContact
+              , simplexUri = "https://api.twitter.com/3/tweets/:id"
+              , trustedUri = True
+              , smpHosts = NE.fromList ["host0", "host2", "host3"]
+              }                                                   
+          ])  
+
+      `shouldBe` S.fromList
+        [ DiffedChar 
+            (FormattedChar '>' $ Just SimplexLink    
+              { linkType = XLContact
+              , simplexUri = "https://api.twitter.com/2/tweets/:id"
+              , trustedUri = True
+              , smpHosts = NE.fromList ["host1", "host2", "host3"]
+              } 
+            ) $ 
+            
+            UnchangedChar $ ChangedToFormat $ Just SimplexLink    
+              { linkType = XLContact
+              , simplexUri = "https://api.twitter.com/3/tweets/:id"
+              , trustedUri = True
+              , smpHosts = NE.fromList ["host0", "host2", "host3"]
+              }                                                      
+        ]
 
 
   it "findPlainDiffs" do
