@@ -135,6 +135,27 @@ findDiffs (LeftSide left) (RightSide right) = addInserts markDeletesAndUnchanged
             if i `elem` deleteIndicies then Deleted 
             else UnchangedChar $ unchangedChars M.! i -- should never error             
 
+    markDeletesAndUnchangedChars' :: Seq DiffedChar
+    markDeletesAndUnchangedChars' = S.mapWithIndex f left
+        where
+        f :: Int -> FormattedChar -> DiffedChar
+        f i x = DiffedChar x $
+            if i `elem` deleteIndicies then Deleted     
+            else UnchangedChar $ status i
+
+        leftWithoutDeletes' :: M.Map Int FormattedChar
+        leftWithoutDeletes' = undefined
+
+        rightWithoutInserts' :: M.Map Int FormattedChar
+        rightWithoutInserts' = undefined
+
+        status :: Int -> DiffFormatStatus
+        status i = if fL == fR then UnchangedFormat else ChangedToFormat fR
+            where
+            (FormattedChar _ fL) = leftWithoutDeletes'  M.! i
+            (FormattedChar _ fR) = rightWithoutInserts' M.! i
+
+
     addInserts :: Seq DiffedChar -> Seq DiffedChar
     addInserts base = F.foldr f base edits -- start from end and work backwards, hence foldr
         where
